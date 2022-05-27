@@ -1,0 +1,1 @@
+extern int run_command(char* command, char* output);
