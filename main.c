@@ -9,10 +9,10 @@
 
 #include "libs/run_command.h"
 
-int countNumberFileInList();
+//int countNumberFileInList();
 
 char FileList[30][100] = {"Blue_Bird.mp4","Sign.mp4","Lovers.mp4","Diver.mp4","Moshimo.mp4","Not_Even_Sudden_Rain_Can_Defeat_Me.mp4","Tsuki_no_Ookisa.mp4","Crimson_Lotus.mp4","Hotaru_no_Hikari.mp4", "Closer.mp4"};
-int lengthFileList;
+int lengthFileList = 10;
 
 
 libvlc_instance_t * instance;
@@ -25,7 +25,7 @@ char* musicName = "";
 GtkWidget *label_info_music;
 GtkWidget *snapshotWidget;
 
-int countNumberFileInList() {
+/*int countNumberFileInList() {
     int temp;
     int iTemp = 0; 
     while (FileList[iTemp] != "" && FileList[iTemp] != 0){
@@ -34,7 +34,7 @@ int countNumberFileInList() {
     }
     return temp;
     
-}
+}*/
 
 
 void intHandler(int dummy) 
@@ -154,7 +154,7 @@ static void activate(GtkApplication *app, gpointer vlc_structure){
 }
 
 int main(int argc, char **argv){
-    lengthFileList = countNumberFileInList();
+    //lengthFileList = countNumberFileInList();
     instance = libvlc_new(0, NULL);
     const char* argvVlc[] = { "--no-video" };
     instance = libvlc_new( 1, argvVlc );
