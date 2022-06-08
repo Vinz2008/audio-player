@@ -1,0 +1,40 @@
+{
+    "configurations": [
+        {
+            "name": "Win32",
+            "includePath": [
+                "${workspaceFolder}\\**",
+                "C:\\msys64\\mingw64\\include\\**",
+                "C:\\msys64\\mingw64\\lib\\glib-2.0\\include",
+                "C:\\msys64\\mingw64\\lib\\graphene-1.0\\include",
+            ],
+        },
+        {
+            "name": "Linux",
+            "includePath": [
+                "${workspaceFolder}/libs/*",
+                "/usr/include/*",
+                "/usr/include/gtk-4.0/",
+                "/usr/include/glib-2.0",
+                "/usr/lib/glib-2.0/include/",
+                "/usr/include/pango-1.0",
+                "/usr/include/sysprof-4",
+                "/usr/include/harfbuzz",
+                "/usr/include/freetype2",
+                "/usr/include/libpng16",
+                "/usr/include/libmount",
+                "/usr/include/blkid",
+                "/usr/include/fribidi",
+                "/usr/include/cairo",
+                "/usr/include/lzo",
+                "/usr/include/pixman-1",
+                "/usr/include/gdk-pixbuf-2.0",
+                "/usr/include/graphene-1.0",
+                "/usr/lib/graphene-1.0/include",
+                "/usr/include/gio-unix-2.0"
+            ]
+        }
+        
+    ],
+    "version": 4
+}
