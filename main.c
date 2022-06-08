@@ -2,6 +2,9 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdbool.h>
+#include <unistd.h>
+#include <sys/types.h>
+#include <sys/wait.h>
 #include <gtk/gtk.h>
 #include <gdk/gdk.h>
 #include <vlc/vlc.h>
@@ -20,21 +23,23 @@ libvlc_media_t *media;
 libvlc_media_player_t *media_player;
 int posPlaylist = 0;
 int snapShotExist = 0;
+int snapShotCreatedOnce = 0;
 int stateToChangeToPlayPause = 1;
 char* musicName = "";
+GtkWidget *window;
 GtkWidget *label_info_music;
 GtkWidget *snapshotWidget;
 
-/*int countNumberFileInList() {
+int countNumberFileInList() {
     int temp;
     int iTemp = 0; 
-    while (FileList[iTemp] != "" && FileList[iTemp] != 0){
+    while (FileList[iTemp]){
         temp++;
         iTemp++;
     }
     return temp;
     
-}*/
+}
 
 
 void intHandler(int dummy) 
@@ -44,14 +49,65 @@ void intHandler(int dummy)
 
 
 void updateMusicInfo(){
-    /*char tempCommand[100];
-    snprintf(tempCommand, sizeof(tempCommand),"ffmpeg -i %s -r 1 -frames:v 1 -s 1280x720 -f image2 snapshot-audio-player.jpg -y", FileList[posPlaylist]);
+    /*pid_t pid = vfork();
+    if(pid == -1)
+    {
+    printf("fork() failed");
+    exit(1);
+    }
+    else if(pid == 0)
+    {
+    char *argsArray[2] = { NULL };
+    printf("test\n");
+    strcpy(argsArray[0], "/usr/bin/ffmpeg");
+    printf("test2\n");
+    snprintf(argsArray[1], sizeof(argsArray[1]), "-ss 00:00:02 -i %s -frames:v 1 -f image2 snapshot-audio-player.jpg -y", FileList[posPlaylist]);
+    strcpy(argsArray[2], (char *)0);
+    execv(argsArray[0], argsArray);
+    }
+    int child_status;
+    int child_pid = wait(&child_status);
+    printf("Child %u finished with status %d\n", child_pid, child_status);*/
+    remove("snapshot-audio-player.jpg");
+    char tempCommand[110];
+    snprintf(tempCommand, sizeof(tempCommand),"ffmpeg -ss 00:00:02 -i %s -frames:v 1 -f image2 snapshot-audio-player.jpg -y", FileList[posPlaylist]);
     system(tempCommand);
+    //sleep(3);
+
     snapShotExist = 1;
-    snapshotWidget = gtk_image_new_from_file("snapshot-audio-player.jpg");*/
+    //gtk_image_clear(GTK_IMAGE(snapshotWidget));
+    if (snapShotCreatedOnce == 1){
+        gtk_image_set_from_file(GTK_IMAGE(snapshotWidget), "snapshot-audio-player.jpg");
+    } else {
+    snapshotWidget = gtk_image_new_from_file("snapshot-audio-player.jpg");
+    }
+    snapShotCreatedOnce = 1;
     char temp[100];
     snprintf(temp,100, "%s", FileList[posPlaylist]);
     gtk_label_set_text(GTK_LABEL(label_info_music), temp);
+}
+
+static void on_response_file_chooser(GtkDialog *dialog,int response){
+    if (response == GTK_RESPONSE_ACCEPT)
+    {
+      GtkFileChooser *chooser = GTK_FILE_CHOOSER(dialog);
+      g_autoptr(GFile) file = gtk_file_chooser_get_file(chooser); // TODO: change to use gtk_file_chooser_get_files()
+      // add to playlist the musics
+    }
+
+    gtk_window_destroy(GTK_WINDOW(dialog));
+}
+
+
+static void openFileChooser(GtkWidget *widget, gpointer data){
+    GtkWidget *file_chooser_dialog = gtk_file_chooser_dialog_new("Choose files", GTK_WINDOW(window), GTK_FILE_CHOOSER_ACTION_OPEN, "Choose");
+
+
+    GtkWidget *dialog;
+    GtkFileChooserAction action = GTK_FILE_CHOOSER_ACTION_OPEN;
+    dialog = gtk_file_chooser_dialog_new ("Open File",GTK_WINDOW(window),action, ("_Cancel"),GTK_RESPONSE_CANCEL, ("_Open"),GTK_RESPONSE_ACCEPT,NULL);
+    gtk_widget_show(dialog);
+    g_signal_connect(dialog, "response", G_CALLBACK (on_response_file_chooser),NULL);
 }
 
 static void play(GtkWidget *widget, gpointer data){
@@ -116,15 +172,23 @@ static void previous(GtkWidget* widget, gpointer data){
 }*/
 
 static void activate(GtkApplication *app, gpointer vlc_structure){
-    GtkWidget *window = gtk_application_window_new(app);
+    window = gtk_application_window_new(app);
     snapshotWidget = gtk_image_new();
     //GtkWidget *player_widget;
     GtkWidget *button_play  = gtk_button_new_with_label("Play");
     GtkWidget *button_stop  = gtk_button_new_with_label("Stop");
     GtkWidget *button_next  = gtk_button_new_with_label("Next");
     GtkWidget *button_previous  = gtk_button_new_with_label("Previous");
+    GtkWidget *button_menu = gtk_menu_button_new();
+    GtkWidget* popover = gtk_popover_new();
+    GtkWidget* menuBox = gtk_box_new(GTK_ORIENTATION_VERTICAL, 3);
+    GtkWidget* openFileButton = gtk_button_new_with_label("Open file");
     GtkWidget *label_title= gtk_label_new("Audio Player");
     label_info_music = gtk_label_new("");
+    gtk_menu_button_set_icon_name(GTK_MENU_BUTTON(button_menu), "open-menu");
+    gtk_menu_button_set_popover(GTK_MENU_BUTTON(button_menu), popover), 
+    gtk_widget_set_halign(button_menu, GTK_ALIGN_END);
+    gtk_widget_set_valign(button_menu, GTK_ALIGN_END);
     //player_widget = gtk_drawing_area_new();
     //g_signal_connect(G_OBJECT(player_widget), "realize", G_CALLBACK(setXWindow), NULL);
     updateMusicInfo();
@@ -136,11 +200,15 @@ static void activate(GtkApplication *app, gpointer vlc_structure){
     gtk_box_set_homogeneous(GTK_BOX(mainUIBox), TRUE);
     gtk_window_set_title(GTK_WINDOW(window), "Audio Player");
     gtk_window_set_default_size(GTK_WINDOW(window),200,200);
+    g_signal_connect(openFileButton, "clicked", G_CALLBACK(openFileChooser), NULL);
     g_signal_connect(button_previous, "clicked", G_CALLBACK(previous), NULL);
     g_signal_connect(button_play, "clicked", G_CALLBACK(play), NULL);
     g_signal_connect(button_stop, "clicked", G_CALLBACK(stop), NULL);
     g_signal_connect(button_next, "clicked", G_CALLBACK(next), NULL);
     gtk_window_set_child(GTK_WINDOW(window), mainUIBox);
+    gtk_popover_set_child(GTK_POPOVER(popover), menuBox);
+    gtk_box_append(GTK_BOX(menuBox), openFileButton);
+    gtk_box_append(GTK_BOX(mainUIBox), button_menu);
     gtk_box_append(GTK_BOX(mainUIBox), label_title);
     gtk_box_append(GTK_BOX(mainUIBox), snapshotWidget);
     //gtk_box_append(GTK_BOX(mainUIBox), player_widget);
