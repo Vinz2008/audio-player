@@ -132,14 +132,11 @@ static void on_response_file_chooser(GtkDialog *dialog,int response){
 
 
 static void openFileChooser(GtkWidget *widget, gpointer data){
-    GtkWidget *file_chooser_dialog = gtk_file_chooser_dialog_new("Choose files", GTK_WINDOW(window), GTK_FILE_CHOOSER_ACTION_OPEN, "Choose");
-
-
     GtkWidget *dialog;
     GtkFileChooserAction action = GTK_FILE_CHOOSER_ACTION_OPEN;
     dialog = gtk_file_chooser_dialog_new ("Open File",GTK_WINDOW(window),action, ("_Cancel"),GTK_RESPONSE_CANCEL, ("_Open"),GTK_RESPONSE_ACCEPT,NULL);
     gtk_widget_show(dialog);
-    g_signal_connect(dialog, "response", G_CALLBACK (on_response_file_chooser),NULL);
+    g_signal_connect(dialog, "response", G_CALLBACK(on_response_file_chooser),NULL);
 }
 
 static void play(GtkWidget *widget, gpointer data){
