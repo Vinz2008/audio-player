@@ -1,6 +1,7 @@
 {
     "files.associations": {
         "*.tcc": "c",
-        "fstream": "c"
+        "fstream": "c",
+        "windows.h": "c"
     }
 }

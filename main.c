@@ -4,7 +4,6 @@
 #include <stdbool.h>
 #include <unistd.h>
 #include <sys/types.h>
-#include <sys/wait.h>
 #include <gtk/gtk.h>
 #include <gdk/gdk.h>
 #include <vlc/vlc.h>
@@ -13,6 +12,35 @@
 #include "libs/run_command.h"
 
 //int countNumberFileInList();
+
+
+#ifdef _WIN32
+
+#include <windows.h>
+#include <tchar.h>
+
+int windows_system(const char *cmd)
+{
+  PROCESS_INFORMATION p_info;
+  STARTUPINFO s_info;
+  LPSTR cmdline, programpath;
+
+  memset(&s_info, 0, sizeof(s_info));
+  memset(&p_info, 0, sizeof(p_info));
+  s_info.cb = sizeof(s_info);
+
+  cmdline = _tcsdup(TEXT(cmd));
+  programpath = _tcsdup(TEXT(cmd));
+
+  if (CreateProcess(programpath, cmdline, NULL, NULL, 0, 0, NULL, NULL, &s_info, &p_info))
+  {
+    WaitForSingleObject(p_info.hProcess, INFINITE);
+    CloseHandle(p_info.hProcess);
+    CloseHandle(p_info.hThread);
+  }
+}
+#endif
+
 
 char FileList[30][100] = {"Blue_Bird.mp4","Sign.mp4","Lovers.mp4","Diver.mp4","Moshimo.mp4","Not_Even_Sudden_Rain_Can_Defeat_Me.mp4","Tsuki_no_Ookisa.mp4","Crimson_Lotus.mp4","Hotaru_no_Hikari.mp4", "Closer.mp4"};
 int lengthFileList = 10;
@@ -71,7 +99,11 @@ void updateMusicInfo(){
     remove("snapshot-audio-player.jpg");
     char tempCommand[110];
     snprintf(tempCommand, sizeof(tempCommand),"ffmpeg -ss 00:00:02 -i %s -frames:v 1 -f image2 snapshot-audio-player.jpg -y", FileList[posPlaylist]);
+    #ifndef _WIN32
     system(tempCommand);
+    #else
+    windows_system(tempCommand);
+    #endif
     //sleep(3);
 
     snapShotExist = 1;
@@ -111,10 +143,12 @@ static void openFileChooser(GtkWidget *widget, gpointer data){
 }
 
 static void play(GtkWidget *widget, gpointer data){
+#ifndef _WIN32
     signal(SIGINT, intHandler); 
     signal(SIGTERM, intHandler); 
     signal(SIGQUIT, intHandler); 
     signal(SIGKILL, intHandler);
+#endif
     media = libvlc_media_new_path(instance, FileList[posPlaylist]);
     media_player = libvlc_media_player_new_from_media(media);
     printf("is playing : %i\n", libvlc_media_player_is_playing(media_player));

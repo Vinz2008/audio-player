@@ -8,9 +8,10 @@
                 "-g",
                 "${file}",
                 "-o",
-                "${fileDirname}\\password-manager.exe",
+                "${fileDirname}\\audio-player.exe",
                 "-mwindows",
-                "%GTK4-PKG-CONFIG%"
+                "%GTK4-PKG-CONFIG%",
+                "%LIBVLC-PKG-CONFIG%"
             ],
             "options": {
                 "cwd": "${fileDirname}"
