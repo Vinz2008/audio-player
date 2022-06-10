@@ -42,7 +42,10 @@ int windows_system(const char *cmd)
 #endif
 
 
-char FileList[30][100] = {"Blue_Bird.mp4","Sign.mp4","Lovers.mp4","Diver.mp4","Moshimo.mp4","Not_Even_Sudden_Rain_Can_Defeat_Me.mp4","Tsuki_no_Ookisa.mp4","Crimson_Lotus.mp4","Hotaru_no_Hikari.mp4", "Closer.mp4"};
+char FileList[][100] = {"Blue_Bird.mp4","Sign.mp4","Lovers.mp4","Diver.mp4","Moshimo.mp4","Not_Even_Sudden_Rain_Can_Defeat_Me.mp4","Tsuki_no_Ookisa.mp4","Crimson_Lotus.mp4","Hotaru_no_Hikari.mp4", "Closer.mp4"};
+char** FileListTest;
+int lengthFileListTest = 0;
+
 int lengthFileList = 10;
 
 
@@ -58,14 +61,18 @@ GtkWidget *window;
 GtkWidget *label_info_music;
 GtkWidget *snapshotWidget;
 
-int countNumberFileInList() {
-    int temp;
-    int iTemp = 0; 
-    while (FileList[iTemp]){
-        temp++;
-        iTemp++;
+size_t countNumberFileInList(char* list[100]) {
+    size_t len = 0; 
+    /*printf("sizeof list %lu\n", sizeof((*list)));
+    printf("sizeof char %lu\n", sizeof(char));
+    printf("sizeof char*  %lu\n", sizeof(char*));
+    len = sizeof(list)/(sizeof(char*));
+    printf("len : %lu\n", len);*/
+    while (list[len] != "\0"){
+        printf("len : %lu\n", len);
+        len++;
     }
-    return temp;
+    return len;
     
 }
 
@@ -123,7 +130,13 @@ static void on_response_file_chooser(GtkDialog *dialog,int response){
     if (response == GTK_RESPONSE_ACCEPT)
     {
       GtkFileChooser *chooser = GTK_FILE_CHOOSER(dialog);
+      
       g_autoptr(GFile) file = gtk_file_chooser_get_file(chooser); // TODO: change to use gtk_file_chooser_get_files()
+      char* filename = g_file_get_path(file);
+      /*gtk_file_chooser_set_select_multiple(chooser, TRUE);
+      g_autoptr(GListModel) file =  gtk_file_chooser_get_files(chooser);*/
+      FileListTest[lengthFileListTest] = filename;
+      lengthFileListTest++;
       // add to playlist the musics
     }
 
@@ -134,7 +147,7 @@ static void on_response_file_chooser(GtkDialog *dialog,int response){
 static void openFileChooser(GtkWidget *widget, gpointer data){
     GtkWidget *dialog;
     GtkFileChooserAction action = GTK_FILE_CHOOSER_ACTION_OPEN;
-    dialog = gtk_file_chooser_dialog_new ("Open File",GTK_WINDOW(window),action, ("_Cancel"),GTK_RESPONSE_CANCEL, ("_Open"),GTK_RESPONSE_ACCEPT,NULL);
+    dialog = gtk_file_chooser_dialog_new("Open File",GTK_WINDOW(window),action, ("_Cancel"),GTK_RESPONSE_CANCEL, ("_Open"),GTK_RESPONSE_ACCEPT,NULL);
     gtk_widget_show(dialog);
     g_signal_connect(dialog, "response", G_CALLBACK(on_response_file_chooser),NULL);
 }
@@ -253,7 +266,8 @@ static void activate(GtkApplication *app, gpointer vlc_structure){
 }
 
 int main(int argc, char **argv){
-    //lengthFileList = countNumberFileInList();
+    //lengthFileList = countNumberFileInList(fileList);
+    FileListTest = malloc(30 * 100 * sizeof(char));
     instance = libvlc_new(0, NULL);
     const char* argvVlc[] = { "--no-video" };
     instance = libvlc_new( 1, argvVlc );
