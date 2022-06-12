@@ -7,8 +7,8 @@
 #include <gtk/gtk.h>
 #include <gdk/gdk.h>
 #include <gdk/x11/gdkx.h>
-#include <xkbcommon/xkbcommon.h>
-#include <xkbcommon/xkbcommon-x11.h>
+/*#include <xkbcommon/xkbcommon.h>
+#include <xkbcommon/xkbcommon-x11.h>*/
 #include <vlc/vlc.h>
 #include <signal.h>
 
@@ -68,8 +68,10 @@ int snapShotCreatedOnce = 0;
 int stateToChangeToPlayPause = 1;
 char* musicName = "";
 GtkWidget *window;
+GtkWidget* player_widget;
 GtkWidget *label_info_music;
 GtkWidget *snapshotWidget;
+GtkWidget* videoWindow;
 
 size_t countNumberFileInList(char* list[100]) {
     size_t len = 0; 
@@ -93,10 +95,14 @@ void intHandler(int dummy)
 }
 
 void player_widget_on_realize(GtkWidget *widget, gpointer data){
-    /*GdkSurface* surface = gtk_native_get_surface(GTK_NATIVE(widget));
+    //libvlc_media_player_set_xwindow(media_player_video, gtk_application_window_get_id(GTK_WINDOW(player_widget)));
+    GdkSurface* surface = gtk_native_get_surface(gtk_widget_get_native(player_widget));
     //gdk_x11_surface_get_xid(surface);
-    libvlc_media_player_set_xwindow(media_player_video,gdk_x11_surface_get_xid(surface));*/
-    //printf("X window assigned\n");
+    libvlc_media_player_set_xwindow(media_player_video, (uint32_t)gdk_x11_surface_get_xid(surface));
+    printf("X window assigned\n");
+    printf("X window assigned\n");
+    printf("X window assigned\n");
+    printf("X window assigned\n");
     //libvlc_media_player_set_xwindow(media_player, GDK_WINDOW_XID(gdk_x11_surface_get_xid(surface)));
     //libvlc_media_player_set_xwindow(media_player, GDK_WINDOW_XID(gtk_widget_get_window(widget)));
 }
@@ -147,7 +153,7 @@ void updateMusicInfo(){
 
 
 void on_key_press(GtkWidget* widget, GdkEvent* event){
-    struct xkb_context *ctx;
+    /*struct xkb_context *ctx;
     ctx = xkb_context_new(XKB_CONTEXT_NO_FLAGS);
     if (!ctx){
         printf("Couldn't create xkbcommon context\n");
@@ -181,11 +187,19 @@ void on_key_press(GtkWidget* widget, GdkEvent* event){
         libvlc_media_player_stop(media_player_video);
         libvlc_media_player_release(media_player);
         libvlc_release(instance); 
-    }
+    }*/
 }
 
+
+void videoWindow_on_delete(GtkWidget *widget, gpointer data){
+    libvlc_media_player_release(media_player_video);
+    libvlc_release(instance_video); 
+    gtk_window_close(GTK_WINDOW(videoWindow));
+    gtk_window_destroy(GTK_WINDOW(videoWindow));
+}
+
+
 static void changeVideoMode(GtkWidget *widget, gpointer data){
-    GtkWidget* videoWindow;
     if (videoMode == 0){
         //if (videoModeInstanceCreated == 0){
             //const char* argvVlc[] = { "--no-video" };1
@@ -194,23 +208,26 @@ static void changeVideoMode(GtkWidget *widget, gpointer data){
             }
             instance_video = libvlc_new(0, NULL);
             media_player_video = libvlc_media_player_new(instance_video);
-            media_video = libvlc_media_new_path(instance_video, FileList[posPlaylist]);
-            media_player_video = libvlc_media_player_new_from_media(media_video);
-            printf("added video mode\n");
 #ifndef _WIN32
             signal(SIGINT, intHandler); 
             signal(SIGTERM, intHandler); 
             signal(SIGQUIT, intHandler); 
             signal(SIGKILL, intHandler);
 #endif
+            media_video = libvlc_media_new_path(instance_video, FileList[posPlaylist]);
+            media_player_video = libvlc_media_player_new_from_media(media_video);
+            printf("added video mode\n");
             videoWindow = gtk_window_new();
-            GtkWidget* player_widget = gtk_drawing_area_new();
+            gtk_window_set_title(GTK_WINDOW(videoWindow), "Video Window");
+            player_widget = gtk_drawing_area_new();
             GtkWidget *videoMainUIBox = gtk_box_new(GTK_ORIENTATION_VERTICAL, 3);
             gtk_window_set_child(GTK_WINDOW(videoWindow), videoMainUIBox);
             gtk_box_append(GTK_BOX(videoMainUIBox), player_widget);
-            //gtk_window_present(GTK_WINDOW(videoWindow));
+            gtk_window_present(GTK_WINDOW(videoWindow));
+            g_signal_connect(G_OBJECT(videoWindow), "delete-event", G_CALLBACK(videoWindow_on_delete), NULL);
             //g_signal_connect(G_OBJECT(player_widget), "realize", G_CALLBACK(player_widget_on_realize), NULL);
-            g_signal_connect(videoWindow, "key-press-event", G_CALLBACK(on_key_press), NULL);
+            player_widget_on_realize(widget, NULL);
+            //g_signal_connect(player_widget, "key-press-event", G_CALLBACK(on_key_press), NULL);
             
             /*GdkEvent *event;
             //GTYPE* eventType = gdk_key_event_get_type();
@@ -233,7 +250,8 @@ static void changeVideoMode(GtkWidget *widget, gpointer data){
     } else {
         libvlc_media_player_release(media_player_video);
         libvlc_release(instance_video); 
-        //gtk_window_destroy(GTK_WINDOW(videoWindow));
+        gtk_window_close(GTK_WINDOW(videoWindow));
+        gtk_window_destroy(GTK_WINDOW(videoWindow));
         videoMode = 0;
         
     }
@@ -329,9 +347,9 @@ static void previous(GtkWidget* widget, gpointer data){
     musicStarted = 1;
 }
 
-/*static void setXWindow(GtkWidget *widget, gpointer data){
-    libvlc_media_player_set_xwindow(media_player, gtk_application_window_get_id(gtk_widget_get_window(widget)));
-}*/
+static void setXWindow(GtkWidget *widget, gpointer data){
+    //libvlc_media_player_set_xwindow(media_player, gtk_application_window_get_id(gtk_widget_get_window(widget)));
+}
 
 static void activate(GtkApplication *app, gpointer vlc_structure){
     window = gtk_application_window_new(app);
