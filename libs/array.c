@@ -39,7 +39,7 @@ char** remove_from_array(char* thing, char** array){
     int i2 = 0;
     int pos;
     char** arrayCopied;
-    char** tempArray;
+    char** tempArray = malloc(sizeof(array) - sizeof(thing));
     int templength;
     int iTemp = 0;
     while (array[iTemp]){
