@@ -2,4 +2,5 @@ audio-player
 *.mp4
 *.ogg
 *.jpg
-*.exe
+*.exe 
+*.elf

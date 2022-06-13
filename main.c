@@ -12,7 +12,7 @@
 #include <vlc/vlc.h>
 #include <signal.h>
 
-#include "libs/run_command.h"
+#include "libs/array.h"
 
 //int countNumberFileInList();
 
@@ -45,14 +45,15 @@ int windows_system(const char *cmd)
 #endif
 
 
-char FileList[][100] = {"Blue_Bird.mp4","Sign.mp4","Lovers.mp4","Diver.mp4","Moshimo.mp4","Not_Even_Sudden_Rain_Can_Defeat_Me.mp4","Tsuki_no_Ookisa.mp4","Crimson_Lotus.mp4","Hotaru_no_Hikari.mp4", "Closer.mp4"};
+//char FileList[][100] = {"Blue_Bird.mp4","Sign.mp4","Lovers.mp4","Diver.mp4","Moshimo.mp4","Not_Even_Sudden_Rain_Can_Defeat_Me.mp4","Tsuki_no_Ookisa.mp4","Crimson_Lotus.mp4","Hotaru_no_Hikari.mp4", "Closer.mp4"};
+char** FileList;
 char** FileListTest;
 int lengthFileListTest = 0;
 
 int musicStarted = 0;
 
-int lengthFileList = 10;
-
+int lengthFileList = 0;
+//int lengthFileList = 10;
 
 libvlc_instance_t* instance;
 libvlc_instance_t* instance_video;
@@ -267,8 +268,16 @@ static void on_response_file_chooser(GtkDialog *dialog,int response){
       char* filename = g_file_get_path(file);
       /*gtk_file_chooser_set_select_multiple(chooser, TRUE);
       g_autoptr(GListModel) file =  gtk_file_chooser_get_files(chooser);*/
-      FileListTest[lengthFileListTest] = filename;
-      lengthFileListTest++;
+      //append_to_array(filename, FileListTest);
+      //FileListTest[lengthFileListTest] = filename;
+      FileList = append_to_array(filename, FileList);
+      printf("out1\n");
+      lengthFileList++;
+      printf("out2\n");
+      for (int i = 0; i < lengthFileList; i++){
+        printf("out?\n");
+        printf("FileList[%d] :  %s\n",i, FileList);
+      }
       // add to playlist the musics
     }
 
@@ -314,7 +323,7 @@ static void stop(GtkWidget* widget, gpointer data){
 }
 
 static void next(GtkWidget* widget, gpointer data){
-    if (posPlaylist < lengthFileList - 1){
+    if (posPlaylist <= lengthFileList - 1){
         posPlaylist++;
     } else {
         posPlaylist = 0;
@@ -331,7 +340,7 @@ static void next(GtkWidget* widget, gpointer data){
 }
 
 static void previous(GtkWidget* widget, gpointer data){
-    if (posPlaylist > 0){
+    if (posPlaylist >= 0){
         posPlaylist--;
     } else {
         posPlaylist = lengthFileList - 1;
@@ -380,7 +389,7 @@ static void activate(GtkApplication *app, gpointer vlc_structure){
     gtk_widget_set_halign(buttonsBox, GTK_ALIGN_CENTER);
     gtk_box_set_homogeneous(GTK_BOX(mainUIBox), TRUE);
     gtk_window_set_title(GTK_WINDOW(window), "Audio Player");
-    gtk_window_set_default_size(GTK_WINDOW(window),200,200);
+    gtk_window_set_default_size(GTK_WINDOW(window),355,200);
     g_signal_connect(openFileButton, "clicked", G_CALLBACK(openFileChooser), NULL);
     g_signal_connect(videoModeButton, "clicked", G_CALLBACK(changeVideoMode), NULL);
     g_signal_connect(button_previous, "clicked", G_CALLBACK(previous), NULL);
@@ -406,7 +415,17 @@ static void activate(GtkApplication *app, gpointer vlc_structure){
 
 int main(int argc, char **argv){
     //lengthFileList = countNumberFileInList(fileList);
-    FileListTest = malloc(30 * 100 * sizeof(char));
+    //FileListTest = malloc(3 * sizeof(char*));
+    /*FileListTest = (char**)malloc(3 * sizeof(char*));
+    FileListTest[0] = malloc(strlen("hello") * sizeof(char));
+    strcpy(FileListTest[0], "hello");
+    FileListTest[1] = malloc(strlen("world") * sizeof(char));
+    strcpy(FileListTest[1], "world");
+    FileListTest =  append_to_array("github", FileListTest);*/
+    FileList = malloc(1 * sizeof(char*));
+    FileList[0] = malloc(strlen("Blue_Bird.mp4") * sizeof(char));
+    lengthFileList++;
+    strcpy(FileList[0], "Blue_Bird.mp4");
     instance = libvlc_new(0, NULL);
     const char* argvVlc[] = { "--no-video" };
     instance = libvlc_new( 1, argvVlc );

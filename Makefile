@@ -1,18 +1,30 @@
 CC=gcc
+buildDir=build
 
+all: setup build/array.o build/main.o linking clean-build
 
-all:
-	rm -rf build
-	mkdir build
-	$(CC) -c -g libs/run_command.c -o build/run_command.o
-	$(CC) -c -g libs/open_file_in_str.c -o build/open_file_in_str.o
+setup:
+	rm -rf $(buildDir)
+	mkdir $(buildDir)
+
+build/array.o:
 	$(CC) -c -g libs/array.c -o build/array.o
+
+build/main.o:
 	$(CC) -c -g main.c -o build/main.o `pkg-config --cflags --libs gtk4 libvlc`
-	$(CC) -o audio-player build/main.o build/run_command.o build/open_file_in_str.o `pkg-config --cflags --libs gtk4 libvlc xkbcommon-x11 xcb`
-	rm -rf build
+
+linking:
+	$(CC) -o audio-player build/main.o build/array.o `pkg-config --cflags --libs gtk4 libvlc xkbcommon-x11 xcb`
+
+
+clean-build:
+	rm -rf $(buildDir)
 
 
 clean:
 	rm -rf build audio-player
 run:
 	./audio-player
+
+install:
+	cp audio-player /usr/bin
