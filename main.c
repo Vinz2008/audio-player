@@ -150,6 +150,7 @@ void updateMusicInfo(){
     char temp[100];
     snprintf(temp,100, "%s", FileList[posPlaylist]);
     gtk_label_set_text(GTK_LABEL(label_info_music), temp);
+    printf("lengthFileList :  %i\n", lengthFileList);
 }
 
 
@@ -269,14 +270,18 @@ static void on_response_file_chooser(GtkDialog *dialog,int response){
       /*gtk_file_chooser_set_select_multiple(chooser, TRUE);
       g_autoptr(GListModel) file =  gtk_file_chooser_get_files(chooser);*/
       //append_to_array(filename, FileListTest);
-      //FileListTest[lengthFileListTest] = filename;
+      printf("before test\n");
       FileList = append_to_array(filename, FileList);
+      /*FileList = (char**)realloc(FileList, sizeof(FileList) + sizeof(char*));
+      FileList[lengthFileList] = (char*)malloc(sizeof(filename));
+      strcpy(FileList[lengthFileList], filename);*/
+      printf("after appending\n");
       printf("out1\n");
       lengthFileList++;
       printf("out2\n");
       for (int i = 0; i < lengthFileList; i++){
         printf("out?\n");
-        printf("FileList[%d] :  %s\n",i, FileList);
+        //printf("FileList[%d] :  %s\n",i, FileList[i]);
       }
       // add to playlist the musics
     }
@@ -323,7 +328,8 @@ static void stop(GtkWidget* widget, gpointer data){
 }
 
 static void next(GtkWidget* widget, gpointer data){
-    if (posPlaylist <= lengthFileList - 1){
+    printf("lengthFileList :  %i\n", lengthFileList);
+    if (posPlaylist < lengthFileList){
         posPlaylist++;
     } else {
         posPlaylist = 0;

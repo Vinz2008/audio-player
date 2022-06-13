@@ -7,9 +7,10 @@ char** append_to_array(char* thing, char** array){
     char** tempArray = (char**)malloc(sizeof(array) + sizeof(thing));
     int templength = 0;
     int iTemp = 0; 
-    for (int i3 = 0; i3 < 1; i3++){
+    /*for (int i3 = 0; i3 < 1; i3++){
         printf("array[%d] : %s\n",i3, array[i3]);
-    }
+    }*/
+    printf("TEST\n");
     /*while (array[iTemp]){
         printf("array[iTemp] : %s\n", array[iTemp]);
         templength++;
@@ -27,7 +28,6 @@ char** append_to_array(char* thing, char** array){
         printf("end : %i\n", end);
     }
     printf("end last : %i\n", end);
-    printf("TEST\n");
     tempArray[end + 1] = (char*)malloc(strlen(thing) * sizeof(char));
     printf("TEST2\n");
     strcpy(tempArray[end + 1], thing);
