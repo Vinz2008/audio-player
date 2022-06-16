@@ -289,7 +289,6 @@ static void on_response_file_chooser(GtkDialog *dialog,int response){
       lengthFileList++;
       printf("lengthFileList increased by 1\n");
       printf("lengthFileList : %d\n", lengthFileList);
-	  printf("test\n");
       // add to playlist the musics
     }
 
