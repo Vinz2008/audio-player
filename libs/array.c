@@ -3,7 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-char** append_to_array(char* thing, char** array){
+char** append_to_array(char* thing, char** array, int arrayLength){
     char** tempArray = (char**)malloc(sizeof(array) + sizeof(thing));
     int templength = 0;
     int iTemp = 0; 
@@ -18,19 +18,21 @@ char** append_to_array(char* thing, char** array){
         iTemp++;
     }*/
     printf("test\n");
-    templength = sizeof(array)/sizeof(array[0]);
-    printf("templength : %d\n", templength);
+    //templength = sizeof(array)/sizeof(array[0]);
+    printf("templength : %d\n", arrayLength);
     int end = 0;
-    for (int i = 0; i < templength - 1; i++){
+    for (int i = 0; i < arrayLength; i++){
+        printf("i : %i\n", i);
         tempArray[i] = (char*)malloc(strlen(array[i]) * sizeof(char));
         strcpy(tempArray[i], array[i]);
+        printf("array[%d] : %s\n", i, array[i]);
         end = i;
         printf("end : %i\n", end);
     }
-    printf("end last : %i\n", end);
-    tempArray[end + 1] = (char*)malloc(strlen(thing) * sizeof(char));
+    printf("end last : %i\n", arrayLength);
+    tempArray[arrayLength] = (char*)malloc(strlen(thing) * sizeof(char));
     printf("TEST2\n");
-    strcpy(tempArray[end + 1], thing);
+    strcpy(tempArray[arrayLength], thing);
     printf("TEST3\n");
     int iTemp2 = 0;
     printf("TEST4\n");

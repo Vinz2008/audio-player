@@ -11,6 +11,7 @@
 #include <xkbcommon/xkbcommon-x11.h>*/
 #include <vlc/vlc.h>
 #include <signal.h>
+#include <limits.h>
 
 #include "libs/array.h"
 
@@ -73,6 +74,7 @@ GtkWidget* player_widget;
 GtkWidget *label_info_music;
 GtkWidget *snapshotWidget;
 GtkWidget* videoWindow;
+GtkWidget* playlistTextContent;
 
 size_t countNumberFileInList(char* list[100]) {
     size_t len = 0; 
@@ -130,15 +132,19 @@ void updateMusicInfo(){
     int child_pid = wait(&child_status);
     printf("Child %u finished with status %d\n", child_pidGtk, child_status);*/
     remove("snapshot-audio-player.jpg");
-    char tempCommand[110];
-    snprintf(tempCommand, sizeof(tempCommand),"ffmpeg -ss 00:00:02 -i %s -frames:v 1 -f image2 snapshot-audio-player.jpg -y", FileList[posPlaylist]);
+    char tempCommand[74 + PATH_MAX];
+	printf("TEST update\n");
+	printf("posPlaylist :  %i\n", posPlaylist);
+	//printf("FileList[0] : %s", FileList[0]);
+	printf("FileList[%d] : %s\n", posPlaylist, FileList[posPlaylist]);
+    snprintf(tempCommand, 74 + PATH_MAX,"ffmpeg -ss 00:00:02 -i %s -frames:v 1 -f image2 snapshot-audio-player.jpg -y", FileList[posPlaylist]);
+	printf("TEST update2\n");
     #ifndef _WIN32
     system(tempCommand);
     #else
     windows_system(tempCommand);
     #endif
     //sleep(3);
-
     snapShotExist = 1;
     //gtk_image_clear(GTK_IMAGE(snapshotWidget));
     if (snapShotCreatedOnce == 1){
@@ -261,8 +267,7 @@ static void changeVideoMode(GtkWidget *widget, gpointer data){
 }
 
 static void on_response_file_chooser(GtkDialog *dialog,int response){
-    if (response == GTK_RESPONSE_ACCEPT)
-    {
+    if (response == GTK_RESPONSE_ACCEPT){
       GtkFileChooser *chooser = GTK_FILE_CHOOSER(dialog);
       
       g_autoptr(GFile) file = gtk_file_chooser_get_file(chooser); // TODO: change to use gtk_file_chooser_get_files()
@@ -271,18 +276,20 @@ static void on_response_file_chooser(GtkDialog *dialog,int response){
       g_autoptr(GListModel) file =  gtk_file_chooser_get_files(chooser);*/
       //append_to_array(filename, FileListTest);
       printf("before test\n");
-      FileList = append_to_array(filename, FileList);
+      FileList = append_to_array(filename, FileList, lengthFileList);
+	  for (int i = 0; i < lengthFileList; i++){
+	  printf("after appending FileList[%d] : %s\n",i, FileList[i]);
+	  }
+
       /*FileList = (char**)realloc(FileList, sizeof(FileList) + sizeof(char*));
       FileList[lengthFileList] = (char*)malloc(sizeof(filename));
       strcpy(FileList[lengthFileList], filename);*/
       printf("after appending\n");
       printf("out1\n");
       lengthFileList++;
-      printf("out2\n");
-      for (int i = 0; i < lengthFileList; i++){
-        printf("out?\n");
-        //printf("FileList[%d] :  %s\n",i, FileList[i]);
-      }
+      printf("lengthFileList increased by 1\n");
+      printf("lengthFileList : %d\n", lengthFileList);
+	  printf("test\n");
       // add to playlist the musics
     }
 
@@ -329,9 +336,13 @@ static void stop(GtkWidget* widget, gpointer data){
 
 static void next(GtkWidget* widget, gpointer data){
     printf("lengthFileList :  %i\n", lengthFileList);
-    if (posPlaylist < lengthFileList){
+	printf("posPlaylist :  %i\n", posPlaylist);
+    if (posPlaylist < lengthFileList - 1){
+		printf("increasing posPlaylist\n");
         posPlaylist++;
+		printf("posPlaylist :  %i\n", posPlaylist);
     } else {
+		printf("put posPlaylist at 0\n");
         posPlaylist = 0;
     }
     updateMusicInfo();
@@ -346,7 +357,7 @@ static void next(GtkWidget* widget, gpointer data){
 }
 
 static void previous(GtkWidget* widget, gpointer data){
-    if (posPlaylist >= 0){
+    if (posPlaylist > 0){
         posPlaylist--;
     } else {
         posPlaylist = lengthFileList - 1;
@@ -379,7 +390,9 @@ static void activate(GtkApplication *app, gpointer vlc_structure){
     GtkWidget* menuBox = gtk_box_new(GTK_ORIENTATION_VERTICAL, 3);
     GtkWidget* openFileButton = gtk_button_new_with_label("Open file");
     GtkWidget* videoModeButton = gtk_button_new_with_label("Add video mode");
-    GtkWidget *label_title= gtk_label_new("Audio Player");
+    GtkWidget *label_title = gtk_label_new("Audio Player");
+    GtkWidget* playlistText = gtk_label_new("Playlist : ");
+    playlistTextContent = gtk_label_new(" ");
     label_info_music = gtk_label_new("");
     gtk_menu_button_set_icon_name(GTK_MENU_BUTTON(button_menu), "open-menu");
     gtk_menu_button_set_popover(GTK_MENU_BUTTON(button_menu), popover), 
@@ -411,6 +424,8 @@ static void activate(GtkApplication *app, gpointer vlc_structure){
     gtk_box_append(GTK_BOX(mainUIBox), snapshotWidget);
     //gtk_box_append(GTK_BOX(mainUIBox), player_widget);
     gtk_box_append(GTK_BOX(mainUIBox), label_info_music);
+    gtk_box_append(GTK_BOX(mainUIBox), playlistText);
+    gtk_box_append(GTK_BOX(mainUIBox), playlistTextContent);
     gtk_box_append(GTK_BOX(mainUIBox), buttonsBox);
     gtk_box_append(GTK_BOX(buttonsBox), button_previous);
     gtk_box_append(GTK_BOX(buttonsBox), button_play);
