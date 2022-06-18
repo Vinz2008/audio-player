@@ -1,7 +1,7 @@
 CC=gcc
 buildDir=build
 
-all: setup build/array.o build/main.o linking clean-build
+all: setup build/array.o build/main.o audio-player clean-build
 
 setup:
 	rm -rf $(buildDir)
@@ -13,7 +13,7 @@ build/array.o:
 build/main.o:
 	$(CC) -c -g main.c -o build/main.o `pkg-config --cflags --libs gtk4 libvlc`
 
-linking:
+audio-player:
 	$(CC) -o audio-player build/main.o build/array.o `pkg-config --cflags --libs gtk4 libvlc xkbcommon-x11 xcb`
 
 
