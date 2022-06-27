@@ -4,7 +4,10 @@
 #include <string.h>
 
 char** append_to_array(char* thing, char** array, int arrayLength){
-    char** tempArray = (char**)malloc(sizeof(array) + sizeof(thing));
+
+    char** tempArray;
+    //free(tempArray);
+    //tempArray = (char**)malloc(sizeof(array) + sizeof(thing));
     int templength = 0;
     int iTemp = 0; 
     /*for (int i3 = 0; i3 < 1; i3++){
@@ -42,6 +45,7 @@ char** append_to_array(char* thing, char** array, int arrayLength){
         iTemp2++;
     }*/
     printf("function end\n");
+    free(array);
     return tempArray;
 }
 

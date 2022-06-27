@@ -277,7 +277,7 @@ static void on_response_file_chooser(GtkDialog *dialog,int response){
       //append_to_array(filename, FileListTest);
       printf("before test\n");
       FileList = append_to_array(filename, FileList, lengthFileList);
-	  for (int i = 0; i < lengthFileList; i++){
+	  for (int i = 0; i < lengthFileList + 1; i++){
 	  printf("after appending FileList[%d] : %s\n",i, FileList[i]);
 	  }
 
