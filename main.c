@@ -13,6 +13,12 @@
 #include <signal.h>
 #include <limits.h>
 
+#ifdef __linux__
+#include <linux/limits.h>
+#endif
+
+#include "music.h"
+#include "playlist.h"
 #include "libs/array.h"
 
 //int countNumberFileInList();
@@ -48,8 +54,7 @@ int windows_system(const char *cmd)
 
 //char FileList[][100] = {"Blue_Bird.mp4","Sign.mp4","Lovers.mp4","Diver.mp4","Moshimo.mp4","Not_Even_Sudden_Rain_Can_Defeat_Me.mp4","Tsuki_no_Ookisa.mp4","Crimson_Lotus.mp4","Hotaru_no_Hikari.mp4", "Closer.mp4"};
 char** FileList;
-char** FileListTest;
-int lengthFileListTest = 0;
+Playlist playlist;
 
 int musicStarted = 0;
 
@@ -136,8 +141,8 @@ void updateMusicInfo(){
 	printf("TEST update\n");
 	printf("posPlaylist :  %i\n", posPlaylist);
 	//printf("FileList[0] : %s", FileList[0]);
-	printf("FileList[%d] : %s\n", posPlaylist, FileList[posPlaylist]);
-    snprintf(tempCommand, 74 + PATH_MAX,"ffmpeg -ss 00:00:02 -i %s -frames:v 1 -f image2 snapshot-audio-player.jpg -y", FileList[posPlaylist]);
+	printf("playlist.musicList[%d] : %s\n", posPlaylist, playlist.musicList[posPlaylist].path);
+    snprintf(tempCommand, 74 + PATH_MAX,"ffmpeg -ss 00:00:02 -i %s -frames:v 1 -f image2 snapshot-audio-player.jpg -y", playlist.musicList[posPlaylist].path);
 	printf("TEST update2\n");
     #ifndef _WIN32
     system(tempCommand);
@@ -154,9 +159,9 @@ void updateMusicInfo(){
     }
     snapShotCreatedOnce = 1;
     char temp[100];
-    snprintf(temp,100, "%s", FileList[posPlaylist]);
+    snprintf(temp,100, "%s", playlist.musicList[posPlaylist].path);
     gtk_label_set_text(GTK_LABEL(label_info_music), temp);
-    printf("lengthFileList :  %i\n", lengthFileList);
+    printf("playlist.size :  %li\n", playlist.size);
 }
 
 
@@ -222,7 +227,7 @@ static void changeVideoMode(GtkWidget *widget, gpointer data){
             signal(SIGQUIT, intHandler); 
             signal(SIGKILL, intHandler);
 #endif
-            media_video = libvlc_media_new_path(instance_video, FileList[posPlaylist]);
+            media_video = libvlc_media_new_path(instance_video, playlist.musicList[posPlaylist].path);
             media_player_video = libvlc_media_player_new_from_media(media_video);
             printf("added video mode\n");
             videoWindow = gtk_window_new();
@@ -276,9 +281,10 @@ static void on_response_file_chooser(GtkDialog *dialog,int response){
       g_autoptr(GListModel) file =  gtk_file_chooser_get_files(chooser);*/
       //append_to_array(filename, FileListTest);
       printf("before test\n");
-      FileList = append_to_array(filename, FileList, lengthFileList);
-	  for (int i = 0; i < lengthFileList + 1; i++){
-	  printf("after appending FileList[%d] : %s\n",i, FileList[i]);
+      //FileList = append_to_array(filename, FileList, lengthFileList);
+      addMusicToPlaylist(&playlist, createMusic(" ", filename));
+	  for (int i = 0; i < playlist.used; i++){
+	  printf("after appending playlist.musicList[%d] : %s\n",i, playlist.musicList[i].path);
 	  }
 
       /*FileList = (char**)realloc(FileList, sizeof(FileList) + sizeof(char*));
@@ -311,7 +317,7 @@ static void play(GtkWidget *widget, gpointer data){
     signal(SIGQUIT, intHandler); 
     signal(SIGKILL, intHandler);
 #endif
-    media = libvlc_media_new_path(instance, FileList[posPlaylist]);
+    media = libvlc_media_new_path(instance, playlist.musicList[posPlaylist].path);
     media_player = libvlc_media_player_new_from_media(media);
     printf("is playing : %i\n", libvlc_media_player_is_playing(media_player));
     if (libvlc_media_player_is_playing(media_player) == true){
@@ -319,8 +325,8 @@ static void play(GtkWidget *widget, gpointer data){
         printf("music paused\n");
     } else {
         if (libvlc_media_player_is_playing(media_player) == false){
-    libvlc_media_player_play(media_player);
-    printf("music started\n");
+            libvlc_media_player_play(media_player);
+            printf("music started\n");
         }
     }
     musicStarted = 1;
@@ -334,9 +340,9 @@ static void stop(GtkWidget* widget, gpointer data){
 }
 
 static void next(GtkWidget* widget, gpointer data){
-    printf("lengthFileList :  %i\n", lengthFileList);
+    printf("playlist.used :  %i\n", playlist.used);
 	printf("posPlaylist :  %i\n", posPlaylist);
-    if (posPlaylist < lengthFileList - 1){
+    if (posPlaylist < playlist.used - 1){
 		printf("increasing posPlaylist\n");
         posPlaylist++;
 		printf("posPlaylist :  %i\n", posPlaylist);
@@ -345,11 +351,11 @@ static void next(GtkWidget* widget, gpointer data){
         posPlaylist = 0;
     }
     updateMusicInfo();
-    printf("filename : %s\n", FileList[posPlaylist]);
+    printf("filename : %s\n", playlist.musicList[posPlaylist].path);
     if (libvlc_media_player_is_playing(media_player) == true){
     libvlc_media_player_stop(media_player);
     }
-    media = libvlc_media_new_path(instance, FileList[posPlaylist]);
+    media = libvlc_media_new_path(instance, playlist.musicList[posPlaylist].path);
     media_player = libvlc_media_player_new_from_media(media);
     libvlc_media_player_play(media_player);
     musicStarted = 1;
@@ -362,11 +368,11 @@ static void previous(GtkWidget* widget, gpointer data){
         posPlaylist = lengthFileList - 1;
     }
     updateMusicInfo();
-     printf("filename : %s\n", FileList[posPlaylist]);
+     printf("filename : %s\n", playlist.musicList[posPlaylist].path);
     if (libvlc_media_player_is_playing(media_player) == true){
     libvlc_media_player_stop(media_player);
     }
-    media = libvlc_media_new_path(instance, FileList[posPlaylist]);
+    media = libvlc_media_new_path(instance, playlist.musicList[posPlaylist].path);
     media_player = libvlc_media_player_new_from_media(media);
     libvlc_media_player_play(media_player);
     musicStarted = 1;
@@ -442,10 +448,10 @@ int main(int argc, char **argv){
     FileListTest[1] = malloc(strlen("world") * sizeof(char));
     strcpy(FileListTest[1], "world");
     FileListTest =  append_to_array("github", FileListTest);*/
-    FileList = malloc(1 * sizeof(char*));
-    FileList[0] = malloc(strlen("Blue_Bird.mp4") * sizeof(char));
-    lengthFileList++;
-    strcpy(FileList[0], "Blue_Bird.mp4");
+
+    initPlaylist(&playlist, 1);
+    Music tempMusic = createMusic("Blue Bird"  ,"Blue_Bird.mp4");
+    addMusicToPlaylist(&playlist, tempMusic);
     instance = libvlc_new(0, NULL);
     const char* argvVlc[] = { "--no-video" };
     instance = libvlc_new( 1, argvVlc );

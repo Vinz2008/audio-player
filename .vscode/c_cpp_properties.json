@@ -6,8 +6,8 @@
                 "${workspaceFolder}\\**",
                 "C:\\msys64\\mingw64\\include\\**",
                 "C:\\msys64\\mingw64\\lib\\glib-2.0\\include",
-                "C:\\msys64\\mingw64\\lib\\graphene-1.0\\include",
-            ],
+                "C:\\msys64\\mingw64\\lib\\graphene-1.0\\include"
+            ]
         },
         {
             "name": "Linux",
@@ -31,10 +31,10 @@
                 "/usr/include/gdk-pixbuf-2.0",
                 "/usr/include/graphene-1.0",
                 "/usr/lib/graphene-1.0/include",
-                "/usr/include/gio-unix-2.0"
+                "/usr/include/gio-unix-2.0",
+                "${workspaceFolder}"
             ]
         }
-        
     ],
     "version": 4
 }
