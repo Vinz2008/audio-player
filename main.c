@@ -58,6 +58,11 @@ Playlist playlist;
 
 int musicStarted = 0;
 
+char* filename;
+GtkWidget* musicDialogWindow;
+GtkEntryBuffer* musicNameBuffer;
+
+
 int lengthFileList = 0;
 //int lengthFileList = 10;
 
@@ -73,7 +78,6 @@ int posPlaylist = 0;
 int snapShotExist = 0;
 int snapShotCreatedOnce = 0;
 int stateToChangeToPlayPause = 1;
-char* musicName = "";
 GtkWidget *window;
 GtkWidget* player_widget;
 GtkWidget *label_info_music;
@@ -158,8 +162,8 @@ void updateMusicInfo(){
     snapshotWidget = gtk_image_new_from_file("snapshot-audio-player.jpg");
     }
     snapShotCreatedOnce = 1;
-    char temp[100];
-    snprintf(temp,100, "%s", playlist.musicList[posPlaylist].path);
+    char temp[PATH_MAX + 100 + 5];
+    snprintf(temp,PATH_MAX + 100 + 5, "%i.\n%s\n%s", posPlaylist + 1,playlist.musicList[posPlaylist].name , playlist.musicList[posPlaylist].path);
     gtk_label_set_text(GTK_LABEL(label_info_music), temp);
     printf("playlist.size :  %li\n", playlist.size);
 }
@@ -276,26 +280,10 @@ static void on_response_file_chooser(GtkDialog *dialog,int response){
       GtkFileChooser *chooser = GTK_FILE_CHOOSER(dialog);
       
       g_autoptr(GFile) file = gtk_file_chooser_get_file(chooser); // TODO: change to use gtk_file_chooser_get_files()
-      char* filename = g_file_get_path(file);
+      filename = g_file_get_path(file);
       /*gtk_file_chooser_set_select_multiple(chooser, TRUE);
       g_autoptr(GListModel) file =  gtk_file_chooser_get_files(chooser);*/
       //append_to_array(filename, FileListTest);
-      printf("before test\n");
-      //FileList = append_to_array(filename, FileList, lengthFileList);
-      addMusicToPlaylist(&playlist, createMusic(" ", filename));
-	  for (int i = 0; i < playlist.used; i++){
-	  printf("after appending playlist.musicList[%d] : %s\n",i, playlist.musicList[i].path);
-	  }
-
-      /*FileList = (char**)realloc(FileList, sizeof(FileList) + sizeof(char*));
-      FileList[lengthFileList] = (char*)malloc(sizeof(filename));
-      strcpy(FileList[lengthFileList], filename);*/
-      printf("after appending\n");
-      printf("out1\n");
-      lengthFileList++;
-      printf("lengthFileList increased by 1\n");
-      printf("lengthFileList : %d\n", lengthFileList);
-      // add to playlist the musics
     }
 
     gtk_window_destroy(GTK_WINDOW(dialog));
@@ -309,6 +297,56 @@ static void openFileChooser(GtkWidget *widget, gpointer data){
     gtk_widget_show(dialog);
     g_signal_connect(dialog, "response", G_CALLBACK(on_response_file_chooser),NULL);
 }
+
+
+static void addMusicButtonCallback(GtkWidget *widget, gpointer data){
+    printf("before test\n");
+    //FileList = append_to_array(filename, FileList, lengthFileList);
+    const char* musicName = gtk_entry_buffer_get_text(musicNameBuffer);
+    addMusicToPlaylist(&playlist, createMusic(musicName, filename));
+	for (int i = 0; i < playlist.used; i++){
+	    printf("after appending playlist.musicList[%d] : %s\n",i, playlist.musicList[i].path);
+	}
+    /*FileList = (char**)realloc(FileList, sizeof(FileList) + sizeof(char*));
+    FileList[lengthFileList] = (char*)malloc(sizeof(filename));
+    strcpy(FileList[lengthFileList], filename);*/
+    printf("after appending\n");
+    printf("out1\n");
+    lengthFileList++;
+    printf("lengthFileList increased by 1\n");
+    printf("lengthFileList : %d\n", lengthFileList);
+    // add to playlist the musics
+    gtk_window_close(GTK_WINDOW(musicDialogWindow));
+    
+}
+
+static void addMusicDialog(GtkWidget *widget, gpointer data){
+    musicDialogWindow  = gtk_window_new();
+    gtk_window_set_title(GTK_WINDOW(musicDialogWindow), "dialog");
+    gtk_window_set_default_size(GTK_WINDOW(musicDialogWindow),355,200);
+    GtkWidget* musicDialogBox = gtk_box_new(GTK_ORIENTATION_VERTICAL, 9);
+    GtkWidget* nameInput = gtk_text_new();
+    musicNameBuffer = gtk_entry_buffer_new(NULL, -1);
+    gtk_text_set_buffer(GTK_TEXT(nameInput), musicNameBuffer);
+    gtk_widget_set_margin_top(nameInput, 50);
+    gtk_widget_set_margin_start(nameInput, 5);
+    GtkWidget* openFileButton = gtk_button_new_with_label("Open file");
+    gtk_widget_set_halign(openFileButton, GTK_ALIGN_START);
+    gtk_widget_set_margin_start(openFileButton, 5);
+    g_signal_connect(openFileButton, "clicked", G_CALLBACK(openFileChooser), NULL);
+    GtkWidget* addMusicButton = gtk_button_new_with_label("Add music");
+    g_signal_connect(addMusicButton, "clicked", G_CALLBACK(addMusicButtonCallback), NULL);
+    gtk_widget_set_halign(addMusicButton, GTK_ALIGN_START);
+    gtk_widget_set_valign(addMusicButton, GTK_ALIGN_END);
+    gtk_box_append(GTK_BOX(musicDialogBox), nameInput);
+    gtk_box_append(GTK_BOX(musicDialogBox), openFileButton);
+    gtk_box_append(GTK_BOX(musicDialogBox), addMusicButton);
+    gtk_window_set_child(GTK_WINDOW(musicDialogWindow), musicDialogBox);
+    gtk_window_present(GTK_WINDOW(musicDialogWindow));
+    //gtk_widget_show(musicDialog);
+}
+
+
 
 static void play(GtkWidget *widget, gpointer data){
 #ifndef _WIN32
@@ -393,7 +431,7 @@ static void activate(GtkApplication *app, gpointer vlc_structure){
     GtkWidget *button_menu = gtk_menu_button_new();
     GtkWidget* popover = gtk_popover_new();
     GtkWidget* menuBox = gtk_box_new(GTK_ORIENTATION_VERTICAL, 3);
-    GtkWidget* openFileButton = gtk_button_new_with_label("Open file");
+    GtkWidget* openFileButtonDialog = gtk_button_new_with_label("Open file");
     GtkWidget* videoModeButton = gtk_button_new_with_label("Add video mode");
     GtkWidget *label_title = gtk_label_new("Audio Player");
     GtkWidget* playlistText = gtk_label_new("Playlist : ");
@@ -414,7 +452,7 @@ static void activate(GtkApplication *app, gpointer vlc_structure){
     gtk_box_set_homogeneous(GTK_BOX(mainUIBox), TRUE);
     gtk_window_set_title(GTK_WINDOW(window), "Audio Player");
     gtk_window_set_default_size(GTK_WINDOW(window),355,200);
-    g_signal_connect(openFileButton, "clicked", G_CALLBACK(openFileChooser), NULL);
+    g_signal_connect(openFileButtonDialog, "clicked", G_CALLBACK(addMusicDialog), NULL);
     g_signal_connect(videoModeButton, "clicked", G_CALLBACK(changeVideoMode), NULL);
     g_signal_connect(button_previous, "clicked", G_CALLBACK(previous), NULL);
     g_signal_connect(button_play, "clicked", G_CALLBACK(play), NULL);
@@ -422,7 +460,7 @@ static void activate(GtkApplication *app, gpointer vlc_structure){
     g_signal_connect(button_next, "clicked", G_CALLBACK(next), NULL);
     gtk_window_set_child(GTK_WINDOW(window), mainUIBox);
     gtk_popover_set_child(GTK_POPOVER(popover), menuBox);
-    gtk_box_append(GTK_BOX(menuBox), openFileButton);
+    gtk_box_append(GTK_BOX(menuBox), openFileButtonDialog);
     gtk_box_append(GTK_BOX(menuBox), videoModeButton);
     gtk_box_append(GTK_BOX(mainUIBox), button_menu);
     gtk_box_append(GTK_BOX(mainUIBox), label_title);
@@ -440,15 +478,6 @@ static void activate(GtkApplication *app, gpointer vlc_structure){
 }
 
 int main(int argc, char **argv){
-    //lengthFileList = countNumberFileInList(fileList);
-    //FileListTest = malloc(3 * sizeof(char*));
-    /*FileListTest = (char**)malloc(3 * sizeof(char*));
-    FileListTest[0] = malloc(strlen("hello") * sizeof(char));
-    strcpy(FileListTest[0], "hello");
-    FileListTest[1] = malloc(strlen("world") * sizeof(char));
-    strcpy(FileListTest[1], "world");
-    FileListTest =  append_to_array("github", FileListTest);*/
-
     initPlaylist(&playlist, 1);
     Music tempMusic = createMusic("Blue Bird"  ,"Blue_Bird.mp4");
     addMusicToPlaylist(&playlist, tempMusic);
@@ -465,5 +494,4 @@ int main(int argc, char **argv){
     libvlc_media_player_release(media_player);
     libvlc_release(instance); 
     return status;
-
 }

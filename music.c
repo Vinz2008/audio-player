@@ -8,3 +8,4 @@ Music createMusic(char* name, char* path){
     tempMusic.name = name;
     return tempMusic;
 }
+
