@@ -15,6 +15,7 @@
 
 #ifdef __linux__
 #include <linux/limits.h>
+#include <sys/stat.h>
 #endif
 
 #include "music.h"
@@ -150,7 +151,7 @@ void updateMusicInfo(){
 	printf("posPlaylist :  %i\n", posPlaylist);
 	//printf("FileList[0] : %s", FileList[0]);
 	printf("playlist.musicList[%d] : %s\n", posPlaylist, playlist.musicList[posPlaylist].path);
-    snprintf(tempCommand, 74 + PATH_MAX,"ffmpeg -ss 00:00:02 -i %s -frames:v 1 -f image2 snapshot-audio-player.jpg -y", playlist.musicList[posPlaylist].path);
+    snprintf(tempCommand, 74 + PATH_MAX,"ffmpeg -ss 00:00:02 -i %s -frames:v 1 -s 480x300 -f image2 snapshot-audio-player.jpg -y", playlist.musicList[posPlaylist].path);
 	printf("TEST update2\n");
     #ifndef _WIN32
     system(tempCommand);
@@ -159,9 +160,14 @@ void updateMusicInfo(){
     #endif
     //sleep(3);
     snapShotExist = 1;
-    //gtk_image_clear(GTK_IMAGE(snapshotWidget));
-    if (access("snapshot-audio-player.jpg", F_OK) == 0) {
+    gtk_image_clear(GTK_IMAGE(snapshotWidget));
+    printf("filename : %s\n", filename);
+    struct stat buffer_temp;
+    struct stat buffer_temp2;
+    if (stat(filename, &buffer_temp) == 0 && stat("snapshot-audio-player.jpg", &buffer_temp2) == 0){
     printf("file exists %s\n", "snapshot-audio-player.jpg");
+    } else {
+        exit(1);
     }
     if (snapShotCreatedOnce == 1){
         gtk_image_set_from_file(GTK_IMAGE(snapshotWidget), "snapshot-audio-player.jpg");
