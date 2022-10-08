@@ -2,7 +2,7 @@ CC=gcc
 CFLAGS=-c -g -Wall
 buildDir=build
 
-all: setup build/array.o build/music.o build/playlist.o build/main.o audio-player clean-build
+all: clean setup build/array.o build/music.o build/playlist.o build/main.o audio-player clean-build
 
 setup:
 	rm -rf $(buildDir)

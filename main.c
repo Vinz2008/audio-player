@@ -151,7 +151,8 @@ void updateMusicInfo(){
 	printf("posPlaylist :  %i\n", posPlaylist);
 	//printf("FileList[0] : %s", FileList[0]);
 	printf("playlist.musicList[%d] : %s\n", posPlaylist, playlist.musicList[posPlaylist].path);
-    snprintf(tempCommand, 74 + PATH_MAX,"ffmpeg -ss 00:00:02 -i %s -frames:v 1 -s 480x300 -f image2 snapshot-audio-player.jpg -y", playlist.musicList[posPlaylist].path);
+    char* snapshotFilename = "/tmp/snapshot-audio-player.jpg";
+    snprintf(tempCommand, 74 + PATH_MAX,"ffmpeg -ss 00:00:02 -i %s -frames:v 1 -s 480x300 -f image2 %s -y", playlist.musicList[posPlaylist].path, snapshotFilename);
 	printf("TEST update2\n");
     #ifndef _WIN32
     system(tempCommand);
@@ -160,19 +161,19 @@ void updateMusicInfo(){
     #endif
     //sleep(3);
     snapShotExist = 1;
-    gtk_image_clear(GTK_IMAGE(snapshotWidget));
+    //gtk_image_clear(GTK_IMAGE(snapshotWidget));
     printf("filename : %s\n", filename);
     struct stat buffer_temp;
     struct stat buffer_temp2;
-    if (stat(filename, &buffer_temp) == 0 && stat("snapshot-audio-player.jpg", &buffer_temp2) == 0){
-    printf("file exists %s\n", "snapshot-audio-player.jpg");
+    if (stat(filename, &buffer_temp) == 0 && stat(snapshotFilename, &buffer_temp2) == 0){
+    printf("file exists %s\n", snapshotFilename);
     } else {
         exit(1);
     }
     if (snapShotCreatedOnce == 1){
-        gtk_image_set_from_file(GTK_IMAGE(snapshotWidget), "snapshot-audio-player.jpg");
+        gtk_image_set_from_file(GTK_IMAGE(snapshotWidget), snapshotFilename);
     } else {
-    snapshotWidget = gtk_image_new_from_file("snapshot-audio-player.jpg");
+    snapshotWidget = gtk_image_new_from_file(snapshotFilename);
     }
     snapShotCreatedOnce = 1;
     char temp[PATH_MAX + 100 + 5];
@@ -358,6 +359,12 @@ static void addMusicDialog(GtkWidget *widget, gpointer data){
     gtk_window_present(GTK_WINDOW(musicDialogWindow));
     //gtk_widget_show(musicDialog);
 }
+
+
+static void addDirectoryDialog(GtkWidget *musicDialog, gpointer data){
+    
+}
+
 static void addFirstMusicButtonCallback(GtkWidget *widget, gpointer data){
     printf("before test\n");
     //FileList = append_to_array(filename, FileList, lengthFileList);
@@ -377,6 +384,7 @@ static void addFirstMusicButtonCallback(GtkWidget *widget, gpointer data){
     // add to playlist the musics
     gtk_box_remove(GTK_BOX(mainUIBox), boxIfNoMusic);
     gtk_box_append(GTK_BOX(mainUIBox), boxifMusic);
+    snapShotCreatedOnce = 0;
     updateMusicInfo();
     gtk_window_close(GTK_WINDOW(firstMusicDialogWindow));
     
@@ -499,6 +507,7 @@ static void activate(GtkApplication *app, gpointer vlc_structure){
     GtkWidget* popover = gtk_popover_new();
     GtkWidget* menuBox = gtk_box_new(GTK_ORIENTATION_VERTICAL, 3);
     GtkWidget* openFileButtonDialog = gtk_button_new_with_label("Open file");
+    GtkWidget* openDirectoryButtonDialog = gtk_button_new_with_label("Open directory");
     GtkWidget* videoModeButton = gtk_button_new_with_label("Add video mode");
     GtkWidget *label_title = gtk_label_new("Audio Player");
     GtkWidget* playlistText = gtk_label_new("Playlist : ");
@@ -519,6 +528,7 @@ static void activate(GtkApplication *app, gpointer vlc_structure){
     gtk_window_set_title(GTK_WINDOW(window), "Audio Player");
     gtk_window_set_default_size(GTK_WINDOW(window),355,200);
     g_signal_connect(openFileButtonDialog, "clicked", G_CALLBACK(addMusicDialog), NULL);
+    g_signal_connect(openDirectoryButtonDialog, "clicked", G_CALLBACK(addDirectoryDialog), NULL);
     g_signal_connect(videoModeButton, "clicked", G_CALLBACK(changeVideoMode), NULL);
     g_signal_connect(button_previous, "clicked", G_CALLBACK(previous), NULL);
     g_signal_connect(button_play, "clicked", G_CALLBACK(play), NULL);
@@ -527,6 +537,7 @@ static void activate(GtkApplication *app, gpointer vlc_structure){
     gtk_window_set_child(GTK_WINDOW(window), mainUIBox);
     gtk_popover_set_child(GTK_POPOVER(popover), menuBox);
     gtk_box_append(GTK_BOX(menuBox), openFileButtonDialog);
+    gtk_box_append(GTK_BOX(menuBox), openDirectoryButtonDialog);
     gtk_box_append(GTK_BOX(menuBox), videoModeButton);
     gtk_box_append(GTK_BOX(mainUIBox), button_menu);
     gtk_box_append(GTK_BOX(mainUIBox), label_title);
@@ -557,7 +568,7 @@ int main(int argc, char **argv){
     media_player = libvlc_media_player_new(instance);
     GtkApplication *app;
     int status;
-    app = gtk_application_new("org.audio-player.audio-player", G_APPLICATION_FLAGS_NONE);
+    app = gtk_application_new("org.audio-player.audio-player", G_APPLICATION_DEFAULT_FLAGS);
     g_signal_connect(app, "activate", G_CALLBACK(activate), NULL);
     status = g_application_run(G_APPLICATION(app), argc, argv);
     g_object_unref(app);
