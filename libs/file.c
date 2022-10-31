@@ -1,6 +1,8 @@
 #include "file.h"
 #include <dirent.h>
 #include <string.h>
+#include <stdlib.h>
+#include <stdio.h>
 #include "array.h"
 
 const char* findFileExtension(const char* filename){

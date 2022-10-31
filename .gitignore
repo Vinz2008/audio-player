@@ -4,3 +4,4 @@ audio-player
 *.jpg
 *.exe 
 *.elf
+*.o
