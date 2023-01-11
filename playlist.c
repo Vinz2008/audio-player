@@ -1,10 +1,10 @@
 #include "playlist.h"
 #include <stdlib.h>
 
-void initPlaylist(Playlist* playlist, size_t initalSize){
-    playlist->musicList = malloc(initalSize * sizeof(Music));
+void initPlaylist(Playlist* playlist, size_t initialSize){
+    playlist->musicList = malloc(initialSize * sizeof(Music));
     playlist->used = 0;
-    playlist->size = initalSize;
+    playlist->size = initialSize;
 }
 
 void addMusicToPlaylist(Playlist* playlist, Music music){
