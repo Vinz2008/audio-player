@@ -20,7 +20,7 @@
 
 #include "music.h"
 #include "playlist.h"
-#include "libs/array.h"
+#include "array.h"
 
 //int countNumberFileInList();
 

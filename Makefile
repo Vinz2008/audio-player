@@ -3,13 +3,11 @@ CC=gcc
 CFLAGS=-c -g -Wall -O2 $(shell pkg-config --cflags gtk4 libvlc)
 LDFLAGS=$(shell pkg-config --libs gtk4 libvlc)
 
-OBJS=\
-libs/array.o \
-libs/file.o \
-libs/run_command.o \
-playlist.o \
-music.o \
-main.o \
+SRCDIR=src
+
+SRCS := $(wildcard $(SRCDIR)/*.c)
+OBJS = $(patsubst %.c,%.o,$(SRCS))
+
 
 all: audio-player
 
